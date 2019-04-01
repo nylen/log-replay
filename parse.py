@@ -274,7 +274,6 @@ def replay_files(after, file_pattern):
     if not len(files):
         raise ValueError("No log files found matching pattern '%s'" % file_pattern)
     files.sort(key=lambda fn: os.path.getmtime(fn))
-    print 'after=%s files=%s' % (after, files)
     log_parser = make_parser(
         "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\""
     )
