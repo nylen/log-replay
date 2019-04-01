@@ -137,7 +137,7 @@ FORMAT_STRINGS = [
     [make_regex('%H'), '.*?', lambda match: 'protocol', lambda matched_strings: matched_strings], #	The request protocol
 
     # Special case of below, for matching just user agent
-    [make_regex('%\{User-Agent\}i'), '.*?', lambda match: 'request_header_user_agent', lambda matched_strings: matched_strings]
+    [make_regex('%\{User-Agent\}i'), '.*?', lambda match: 'request_header_user_agent', lambda matched_strings: matched_strings],
     [make_regex('%\{[^\}]+?\}i'), '.*?', extract_inner_value("request_header_", "i") , lambda matched_strings: matched_strings], #	The contents of Foobar: header line(s) in the request sent to the server. Changes made by other modules (e.g. mod_headers) affect this. If you're interested in what the request header was prior to when most modules would have modified it, use mod_setenvif to copy the header into an internal environment variable and log that value with the %\{VARNAME}e described above.
 
     [make_regex('%k'), '.*?', lambda match: 'num_keepalives', lambda matched_strings: matched_strings], #	Number of keepalive requests handled on this connection. Interesting if KeepAlive is being used, so that, for example, a '1' means the first keepalive request after the initial one, '2' the second, etc...; otherwise this is always 0 (indicating the initial request). Available in versions 2.2.11 and later.
