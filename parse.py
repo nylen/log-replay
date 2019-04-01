@@ -1,8 +1,11 @@
 import argparse
+import errno
 import glob
+import gzip
+import json
 import os
 import re
-from datetime import datetime, tzinfo, timedelta
+from datetime import date, datetime, tzinfo, timedelta
 
 class ApacheLogParserException(Exception): pass
 
@@ -229,6 +232,15 @@ def get_fieldnames(format_string):
 
 # New log-replay functionality
 
+def json_helper(o):
+    if isinstance(o, (date, datetime)):
+        return o.isoformat()
+
+def read_log_file(fn):
+    if fn[-3:] == '.gz':
+        return gzip.open(fn, 'r')
+    return open(fn, 'r')
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Parse Apache log files')
     parser.add_argument(
@@ -258,6 +270,22 @@ def replay_files(after, file_pattern):
         "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\""
     )
 
+    if after == '0':
+        for fn in files: # oldest to newest
+            with read_log_file(fn) as f:
+                for line in f:
+                    print json.dumps(log_parser(line), default=json_helper)
+        return
+
+    files.reverse()
+    for fn in files:
+        # TODO: Find the file that matches this continue_value
+        pass
+
 if __name__ == '__main__':
     args = parse_args()
-    replay_files(args.after, args.files)
+    try:
+        replay_files(args.after, args.files)
+    except IOError as e:
+        if e.errno == errno.EPIPE:
+            pass
