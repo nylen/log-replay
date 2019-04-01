@@ -1,3 +1,6 @@
+import argparse
+import glob
+import os
 import re
 from datetime import datetime, tzinfo, timedelta
 
@@ -104,7 +107,7 @@ def format_time(matched_strings):
 
     # Parse it to a timezone string
     obj = apachetime(time_received)
-    
+
     # For backwards compatibility, time_received_datetimeobj is a naive
     # datetime, so we have to create a timezone less version
     naive_obj = obj.replace(tzinfo=None)
@@ -222,3 +225,39 @@ def make_parser(format_string):
 
 def get_fieldnames(format_string):
     return Parser(format_string).names
+
+
+# New log-replay functionality
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Parse Apache log files')
+    parser.add_argument(
+        '-a', '--after', type=str, metavar='continue_value', required=True,
+        help="""
+            Parse all recognized log entries after the given entry.
+            The value is a `continue_value` returned by this program
+            along with a previous entry, or 0 to parse all entries.
+        """
+    )
+    parser.add_argument(
+        '-f', '--files', type=str, metavar="'*.log'", required=True,
+        help="""
+            The log files to parse.  Make sure you quote this correctly
+            in your shell if it contains glob characters like *.
+        """
+    )
+    return parser.parse_args()
+
+def replay_files(after, file_pattern):
+    files = glob.glob(file_pattern)
+    if not len(files):
+        raise ValueError("No log files found matching pattern '%s'" % file_pattern)
+    files.sort(key=lambda fn: os.path.getmtime(fn))
+    print 'after=%s files=%s' % (after, files)
+    log_parser = make_parser(
+        "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\""
+    )
+
+if __name__ == '__main__':
+    args = parse_args()
+    replay_files(args.after, args.files)
