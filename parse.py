@@ -5,7 +5,8 @@ import gzip
 import json
 import os
 import re
-from datetime import date, datetime, tzinfo, timedelta
+from collections import OrderedDict
+from datetime import datetime, tzinfo, timedelta
 
 class ApacheLogParserException(Exception): pass
 
@@ -232,9 +233,17 @@ def get_fieldnames(format_string):
 
 # New log-replay functionality
 
-def json_helper(o):
-    if isinstance(o, (date, datetime)):
-        return o.isoformat()
+def format_log_record(parsed_obj):
+    return OrderedDict([
+        ('time', parsed_obj['time_received_utc_isoformat']),
+        ('remote_host', parsed_obj['remote_host']),
+        ('method', parsed_obj['request_method']),
+        ('url', parsed_obj['request_url']),
+        ('status', parsed_obj['status']),
+        ('size', parsed_obj['bytes_tx']),
+        ('referer', parsed_obj['request_header_referer']),
+        ('user_agent', parsed_obj['request_header_user_agent']),
+    ])
 
 def read_log_file(fn):
     if fn[-3:] == '.gz':
@@ -274,7 +283,7 @@ def replay_files(after, file_pattern):
         for fn in files: # oldest to newest
             with read_log_file(fn) as f:
                 for line in f:
-                    print json.dumps(log_parser(line), default=json_helper)
+                    print json.dumps(format_log_record(log_parser(line)))
         return
 
     files.reverse()
