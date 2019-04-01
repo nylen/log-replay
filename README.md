@@ -11,19 +11,26 @@ Clone the repository to the same machine as the Apache log files.
 Usage
 =====
 
-Run `parse.py`.  It will wait for a command on standard input.  Commands are
-JSON objects passed on their own line.
+```
+parse.py options
 
-- `{"files":"/var/log/apache2/*.log*","after":0}` - parse all recognized Apache
-  log entries.
-- `{"files":"/var/log/apache2/*.log*","after":"continue_value"}` - parse all
-  recognized Apache log entries after a given entry.  An opaque
-  `continue_value` is returned with each log record, and this value can be
-  passed back to the program in subsequent runs to parse only new records.
+Options:
+  -a, --after XYZ       Parse all recognized log entries after the given entry.
+                        The value is a `continue_value` returned by this program
+                        along with a previous entry, or 0 to parse all entries.
 
-After receiving a valid command, the program will send back log entries on
-standard output, each one formatted as a JSON object on its own line.  Any
-errors will be sent back on standard error, also formatted as JSON objects.
+  -f, --files '*.log'   The log files to parse.  Make sure you quote this correctly
+                        in your shell if it contains glob characters like *.
+```
+
+The program will send back log entries on standard output, each one formatted
+as a JSON object on its own line.  Each entry has a `continue_value` key that
+can be passed back to the program to retrieve all log entries **after** the
+current entry.
+
+Any errors will also be sent back on standard output, also formatted as JSON
+objects.  Errors always have a truthy value (the error message) in the
+`"error"` key of the object; non-errors never have this value.
 
 Currently the only supported log format is the Apache2 `combined` log format
 for access logs:
