@@ -1,5 +1,9 @@
-Parses log lines from Apache logs, including a mechanism to restart parsing
-from a previous checkpoint.
+Parses log lines from Apache logs
+
+Future plans:
+
+- Include a mechanism to restart parsing from a previous checkpoint.
+- Better error handling.
 
 Based on [`apache-log-parser`](https://github.com/rory/apache-log-parser).
 
@@ -16,21 +20,17 @@ parse.py options
 
 Options:
   -a, --after XYZ       Parse all recognized log entries after the given entry.
-                        The value is a `continue_value` returned by this program
-                        along with a previous entry, or 0 to parse all entries.
+                        Not implemented yet; currently this must be 0.
 
   -f, --files '*.log'   The log files to parse.  Make sure you quote this correctly
                         in your shell if it contains glob characters like *.
 ```
 
 The program will send back log entries on standard output, each one formatted
-as a JSON object on its own line.  Each entry has a `continue_value` key that
-can be passed back to the program to retrieve all log entries **after** the
-current entry.
+as a JSON object on its own line.
 
-Any errors will also be sent back on standard output, also formatted as JSON
-objects.  Errors always have a truthy value (the error message) in the
-`"error"` key of the object; non-errors never have this value.
+Log lines that do not match the expected pattern will cause the program to
+fail.  This behavior may change in the future.
 
 Currently the only supported log format is the Apache2 `combined` log format
 for access logs:
